@@ -1,0 +1,46 @@
+USE [s100_Khusii_com_db]
+GO
+/****** Object:  StoredProcedure [Global].[spFilterAdvancedBySHGList]    Script Date: 2019-03-08 15:19:30 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [Global].[spFilterAdvancedBySHGList]  0,0,0,'',0
+@UserID BIGINT ,@SHID BIGINT,@aID INT,@Parameter nvarchar(190),@ID BIGINT
+AS  
+BEGIN  
+  DECLARE @Sql nvarchar(MAX)  
+        BEGIN  
+			SET @Sql ='SELECT i.Id,e.Id as sbID,I.HName,I.MobileNo,I.ImgUrl, Global.BeneficaryRelation.Name as BType,IA.ProjectID AS pID,IA.ProjectName AS ProjectName, I.BName, I.Age, I.HNo, I.VDesc, I.Pincode, I.Gender, I.Caste, I.Martial, I.Religion, I.Schavail, I.EduDesc, I.FIncome, I.FSaving
+			, I.ChildQty, I.NosTrained, '+  
+			+'I.NomTrained, I.NoFAdult, I.Ftotal, I.FMale, I.FFemale, I.Ctotal, I.CStepFirst, I.CStepSecond, I.CStepThird, I.GovSchema, I.SOccupation, I.Svocational, I.IsBank, I.UseSaving,A.AreaName as AreaName, A.CityName AS CityName, '+  
+			+'A.StateName AS StateName,E.CreateDate ,ST.Name as StType,ST.ID AS stID ,E.SHID,I.UniqueID,ISNULL(SE.BankName,''NA'') as BankName,ISNULL(SE.BranchName,''NA'') as BranchName,ISNULL(SE.IFSC,''NA'') as IFSC,ISNULL(SE.AccountNo,''NA'') as AccountNo,ISNULL(SE.AccountName,''NA'')as AccountName  '+  
+			+'FROM  Global.InterventionDetail AS I INNER JOIN '+  
+			+'[Global].[vStateCityArea] AS A ON I.aID = A.AreaID INNER JOIN '+  
+			+'Global.BeneficaryRelation ON I.BrId = Global.BeneficaryRelation.Bid INNER JOIN  '+  
+			+'Global.SHGBeneficaryTbl AS E ON I.Id = E.InID INNER JOIN '+  
+			+'Global.SelfHGroup_tbl AS SE ON SE.ID = E.SHID INNER JOIN '+ 
+			+'Global.SHGType AS ST ON E.stID = ST.ID INNER JOIN '+
+			+'[Global].[pInventionList] AS IA ON IA.InID = I.Id where (I.IsDeleted=0)'  
+             IF(@UserID!=0)  
+                BEGIN  
+                  SET @Sql=@Sql+'AND  I.UserID='+ CAST(@UserID AS NVARCHAR(10)) +''  
+                END  
+             IF(@SHID!=0)  
+			    BEGIN  
+			     SET @Sql=@Sql+' and E.SHID =' + CAST(@SHID AS NVARCHAR(10)) + ''
+			    END  
+			IF(@aID!=0)  
+		    	 BEGIN  
+			    SET @Sql=@Sql+' and IA.aID  =' + CAST(@aID AS NVARCHAR(10)) + '' 
+			 END  
+			 IF(@ID!=0)  
+		    	 BEGIN  
+			     SET @Sql=@Sql+' and I.ID  =' + CAST(@ID AS NVARCHAR(10)) + '' 
+			 END  
+		END  
+      SET @Sql=@Sql+'AND (I.HName  like ''%'+ @Parameter +'%'' OR I.UniqueID  like ''%'+ @Parameter +'%'')  order by I.CreateDate desc'  
+      EXEC sp_executesql @Sql  
+   END  
+  
+     
